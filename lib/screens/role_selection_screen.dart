@@ -22,7 +22,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       backgroundColor: const Color(0xFF34978A), // Teal background
       body: Stack(
         children: [
-          
           // Header with centered logo
           Positioned(
             top: 0,
@@ -72,36 +71,39 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 ),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start (left)
                 children: [
                   const SizedBox(height: 32),
-                    // Header texts
-                    Positioned(
-                    top: 137,
-                    left: 20,
+                  // Header texts (replaced Positioned with Padding for positioning)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, top: 25), // Adjusted top padding to match top: 137
                     child: const Text(
                       "Let's Get Started",
                       style: TextStyle(
-                      color: Color(0xFF202020),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'DM Sans',
-                      height: 1.3,
-                      letterSpacing: -0.02,
+                        color: Color(0xFF202020),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'DM Sans',
+                        height: 1.3,
+                        letterSpacing: -0.02,
                       ),
                     ),
-                    ),
+                  ),
                   const SizedBox(height: 8),
-                    const Text(
-                    "Please select your preferred profile role",
-                    style: TextStyle(
-                      color: Color(0xFF606060),
-                      fontSize: 14,
-                      fontFamily: 'DM Sans',
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                      letterSpacing: -0.01,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20), // Align with the above text
+                    child: const Text(
+                      "Please select your preferred profile role",
+                      style: TextStyle(
+                        color: Color(0xFF606060),
+                        fontSize: 14,
+                        fontFamily: 'DM Sans',
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
+                        letterSpacing: -0.01,
+                      ),
                     ),
-                    ),
+                  ),
                   const SizedBox(height: 32),
                   // Role cards in GridView
                   Expanded(
@@ -159,21 +161,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       ),
                     ),
                   ),
-
-                  // Wavy pattern at the bottom (behind main content)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Image.asset(
-                      'assets/wavy_vector.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
                 ],
               ),
             ),
           ),
+          
         ],
       ),
     );
