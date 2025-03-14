@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "735688318152",
+    "project_id": "inrida-6817e",
+    "storage_bucket": "inrida-6817e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735688318152:android:10978cd6eff4eb327119fd",
+        "android_client_info": {
+          "package_name": "com.example.inrida"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXmXYplRf2dCVAAg4u2I3Q7afdHRH3ipY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
