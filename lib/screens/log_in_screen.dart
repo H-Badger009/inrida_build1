@@ -1,40 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-class CreateAccountScreen extends StatefulWidget {
-  const CreateAccountScreen({super.key});
+class LogInScreen extends StatefulWidget {
+  const LogInScreen({super.key});
 
   @override
-  State<CreateAccountScreen> createState() => _CreateAccountScreenState();
+  State<LogInScreen> createState() => _LogInScreenState();
 }
 
-class _CreateAccountScreenState extends State<CreateAccountScreen> {
+class _LogInScreenState extends State<LogInScreen> {
   bool _passwordVisible = false;
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
 
-  Future<void> _createAccount() async {
+  Future<void> _logIn() async {
     setState(() => _isLoading = true);
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      User? user = userCredential.user;
-      if (user != null) {
-        await user.sendEmailVerification();
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/verify_account');
-        }
-      }
+      // Handle log in logic here
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating account: $e')),
+          SnackBar(content: Text('Error logging in: $e')),
         );
       }
     }
@@ -79,7 +65,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Create Account',
+                        'Log In',
                         style: TextStyle(
                           color: Color(0xFF202020),
                           fontSize: 24,
@@ -91,7 +77,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       Row(
                         children: [
                           const Text(
-                            'Already have an account? ',
+                            "Don't have an account? ",
                             style: TextStyle(
                               color: Color(0xFF606060),
                               fontSize: 14,
@@ -100,10 +86,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushNamed(context, '/login'); // Adjust route
+                              Navigator.pushNamed(context, '/create_account'); // Adjust route
                             },
                             child: const Text(
-                              'Log In',
+                              'Create Account',
                               style: TextStyle(
                                 color: Color(0xFF34978A),
                                 fontSize: 14,
@@ -145,42 +131,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           fontSize: 14,
                           fontFamily: 'DM Sans',
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Phone Number',
-                        style: TextStyle(
-                          color: Color(0xFF202020),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'DM Sans',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      IntlPhoneField(
-                        controller: _phoneController,
-                        decoration: InputDecoration(
-                          hintText: '00 000 00000',
-                          filled: true,
-                          fillColor: const Color(0xFFE5E5E5),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(80),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 23,
-                            horizontal: 40,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          color: Color(0xFF909090),
-                          fontSize: 14,
-                          fontFamily: 'DM Sans',
-                        ),
-                        initialCountryCode: 'RW',
-                        onChanged: (phone) {
-                          // Handle phone number change if needed
-                        },
                       ),
                       const SizedBox(height: 20),
                       const Text(
@@ -226,42 +176,25 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Minimum of 8 characters',
-                        style: TextStyle(
-                          color: Color(0xFF606060),
-                          fontSize: 14,
-                          fontFamily: 'DM Sans',
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/forgot_password');
+                          },
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(
+                              color: Color(0xFF34978A),
+                              fontSize: 14,
+                              fontFamily: 'DM Sans',
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 38),
-                      Text.rich(
-                        TextSpan(
-                          text: 'By signing up, I agree to the ',
-                          style: const TextStyle(
-                            color: Color(0xFF505050),
-                            fontSize: 13,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: 'Terms & Conditions',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF34978A),
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                        style: const TextStyle(
-                          color: Color(0xFF2E7D32),
-                          fontSize: 14,
-                          fontFamily: 'DM Sans',
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: _isLoading ? null : _createAccount,
+                        onPressed: _isLoading ? null : _logIn,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF202020),
                           shape: RoundedRectangleBorder(
@@ -272,7 +205,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         child: _isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : const Text(
-                                'Create Account',
+                                'Log In',
                                 style: TextStyle(
                                   color: Color(0xFFFFFFFF),
                                   fontSize: 16,
