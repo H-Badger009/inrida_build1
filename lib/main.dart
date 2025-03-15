@@ -7,8 +7,8 @@ import 'screens/create_account_screen.dart';
 import 'screens/verify_account_screen.dart';
 import 'screens/email_verified_screen.dart';
 import 'screens/forgot_password_screen.dart';
-// import 'package:inrida/screens/check_email_screen.dart';
-// import 'package:indrida/screens/password_reset_screen.dart';
+import 'package:inrida/screens/check_email_screen.dart';
+import 'package:inrida/screens/password_reset_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,8 +36,8 @@ class InRidaApp extends StatelessWidget {
         '/verify_account': (context) => const VerifyAccountScreen(),
         '/email_verified': (context) => const EmailVerifiedScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
-        // '/check_email': (context) => const CheckEmailScreen(),
-        // '/password_reset': (context) => const PasswordResetScreen(),
+        '/check_email': (context) => const CheckEmailScreen(),
+        '/password_reset': (context) => const PasswordResetScreen(),
       },
     );
   }
