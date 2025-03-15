@@ -143,13 +143,13 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                               print('Selected role: $selectedRole');
                             }
                           : null,
-                      style: ElevatedButton.styleFrom(
+                        style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(25),
                         ),
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
+                        minimumSize: const Size(350, 56),
+                        ),
                       child: const Text(
                         'Continue',
                         style: TextStyle(
@@ -203,7 +203,7 @@ class RoleCard extends StatelessWidget {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+            children: [
             Image.asset(
               iconPath,
               width: 40,
@@ -213,9 +213,12 @@ class RoleCard extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                color: Colors.black,
-                fontSize: 16,
-                fontFamily: 'SansSerif',
+              color: Colors.black,
+              fontSize: 14,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+              letterSpacing: -0.01,
               ),
             ),
           ],
