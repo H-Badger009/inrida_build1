@@ -18,7 +18,13 @@ class _CheckEmailScreenState extends State<CheckEmailScreen> {
   @override
   void initState() {
     super.initState();
-    email = ModalRoute.of(context)!.settings.arguments as String;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    email = route!.settings.arguments as String;
     _startTimer();
   }
 
