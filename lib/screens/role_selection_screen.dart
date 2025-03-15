@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'create_account_screen.dart'; // Add this import
+import 'create_account_screen.dart'; // Ensure this import is correct
 
 void main() {
   runApp(const MaterialApp(
@@ -32,28 +32,28 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               height: 100,
               color: Colors.transparent, // Let teal background show through
               child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/InRida Logo.png',
-                width: 28,
-                height: 28,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'inRida',
-                style: TextStyle(
-            color: Color(0xFFFBFBFB), // Contrast with teal
-            fontSize: 20,
-            fontFamily: 'Audiowide',
-            fontWeight: FontWeight.w400,
-            height: 1.0,
-            letterSpacing: 0.0,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/InRida Logo.png',
+                      width: 28,
+                      height: 28,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'inRida',
+                      style: TextStyle(
+                        color: Color(0xFFFBFBFB), // Contrast with teal
+                        fontSize: 20,
+                        fontFamily: 'Audiowide',
+                        fontWeight: FontWeight.w400,
+                        height: 1.0,
+                        letterSpacing: 0.0,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
               ),
             ),
           ),
@@ -67,107 +67,110 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               width: 390, // Set width
               height: 748, // Set height
               decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(40),
-            topRight: Radius.circular(40),
-          ),
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
+                ),
               ),
               child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start (left)
-          children: [
-            
-            // Header texts (replaced Positioned with Padding for positioning)
-            Padding(
-              padding: const EdgeInsets.only(left: 20, top: 25), // Adjusted top padding to match top: 137
-              child: const Text(
-                "Let's Get Started",
-                style: TextStyle(
-            color: Color(0xFF202020),
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            fontFamily: 'DM Sans',
-            height: 1.3,
-            letterSpacing: -0.02,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.only(left: 20), // Align with the above text
-              child: const Text(
-                "Please select your preferred profile role",
-                style: TextStyle(
-            color: Color(0xFF606060),
-            fontSize: 14,
-            fontFamily: 'DM Sans',
-            fontWeight: FontWeight.w500,
-            height: 1.4,
-            letterSpacing: -0.01,
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            // Role cards in GridView
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start (left)
                 children: [
-            RoleCard(
-              iconPath: 'assets/ion_car-sport-sharp.png',
-              label: 'Car Owner',
-              isSelected: selectedRole == 'car_owner',
-              onTap: () => setState(() => selectedRole = 'car_owner'),
-            ),
-            RoleCard(
-              iconPath: 'assets/mingcute_steering-wheel-fill.png',
-              label: 'Driver',
-              isSelected: selectedRole == 'driver',
-              onTap: () => setState(() => selectedRole = 'driver'),
-            ),
-            RoleCard(
-              iconPath: 'assets/tabler_user-filled.png',
-              label: 'Rider (Client)',
-              isSelected: selectedRole == 'rider',
-              onTap: () => setState(() => selectedRole = 'rider'),
-            ),
+                  // Header texts (replaced Positioned with Padding for positioning)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, top: 25), // Adjusted top padding to match top: 137
+                    child: const Text(
+                      "Let's Get Started",
+                      style: TextStyle(
+                        color: Color(0xFF202020),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'DM Sans',
+                        height: 1.3,
+                        letterSpacing: -0.02,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20), // Align with the above text
+                    child: const Text(
+                      "Please select your preferred profile role",
+                      style: TextStyle(
+                        color: Color(0xFF606060),
+                        fontSize: 14,
+                        fontFamily: 'DM Sans',
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
+                        letterSpacing: -0.01,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Role cards in GridView
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        RoleCard(
+                          iconPath: 'assets/ion_car-sport-sharp.png',
+                          label: 'Car Owner',
+                          isSelected: selectedRole == 'car_owner',
+                          onTap: () => setState(() => selectedRole = 'car_owner'),
+                        ),
+                        RoleCard(
+                          iconPath: 'assets/mingcute_steering-wheel-fill.png',
+                          label: 'Driver',
+                          isSelected: selectedRole == 'driver',
+                          onTap: () => setState(() => selectedRole = 'driver'),
+                        ),
+                        RoleCard(
+                          iconPath: 'assets/tabler_user-filled.png',
+                          label: 'Rider (Client)',
+                          isSelected: selectedRole == 'rider',
+                          onTap: () => setState(() => selectedRole = 'rider'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Continue button with bottom padding to reveal wavy pattern
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      onPressed: selectedRole != null
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CreateAccountScreen(
+                                    selectedRole: selectedRole!, // Pass the selected role
+                                  ),
+                                ),
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        minimumSize: const Size(350, 56),
+                      ),
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'SansSerif',
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
-              ),
-            ),
-            // Continue button with bottom padding to reveal wavy pattern
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton(
-                onPressed: selectedRole != null
-              ? () {
-                  Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
-                  );
-                }
-              : null,
-                style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(25),
-            ),
-            minimumSize: const Size(350, 56),
-                ),
-                child: const Text(
-            'Continue',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'SansSerif',
-            ),
-                ),
-              ),
-            ),
-          ],
               ),
             ),
           ),

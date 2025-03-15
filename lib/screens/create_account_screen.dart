@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Add this import for Firestore
 
 class CreateAccountScreen extends StatefulWidget {
-  const CreateAccountScreen({super.key});
+  final String selectedRole; // Add this to accept the selected role
+
+  const CreateAccountScreen({super.key, required this.selectedRole}); // Update constructor
 
   @override
   State<CreateAccountScreen> createState() => _CreateAccountScreenState();
@@ -26,6 +29,14 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       );
       User? user = userCredential.user;
       if (user != null) {
+        // Store user data in Firestore, including the selected role
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'email': user.email,
+          'phone': _phoneController.text.trim(),
+          'role': widget.selectedRole, // Store the selected role
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
         await user.sendEmailVerification();
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/verify_account');

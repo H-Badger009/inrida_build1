@@ -1,4 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
@@ -13,21 +17,47 @@ class _LogInScreenState extends State<LogInScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> _logIn() async {
-    setState(() => _isLoading = true);
-    try {
-      // Handle log in logic here
-    } catch (e) {
-      if (mounted) {
+  Future<String?> _getUserRole(String uid) async {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    return doc.data()?['role'] as String?;
+  }
+
+
+Future<void> _logIn() async {
+  setState(() => _isLoading = true);
+  try {
+    // Attempt to sign in with email and password
+    final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    // Check if the user is authenticated
+    if (userCredential.user != null) {
+      // Fetch the user's role from Firestore
+      final role = await _getUserRole(userCredential.user!.uid);
+
+      // Navigate based on the user's role
+      if (role == 'car_owner') {
+        Navigator.pushReplacementNamed(context, '/car_owner_home');
+      } else {
+        // Show an error if the role isn’t "Car Owner"
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error logging in: $e')),
+          const SnackBar(content: Text('Role not authorized for this dashboard')),
         );
       }
     }
+  } catch (e) {
     if (mounted) {
-      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error logging in: $e')),
+      );
     }
   }
+  if (mounted) {
+    setState(() => _isLoading = false);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
