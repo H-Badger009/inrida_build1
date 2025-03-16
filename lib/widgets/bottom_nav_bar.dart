@@ -13,44 +13,35 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      currentIndex: selectedIndex,
+      onTap: onItemTapped,
+      backgroundColor: Colors.white,
+      selectedItemColor: Colors.black,
+      unselectedItemColor: Colors.grey,
+      elevation: 8.0,
+      type: BottomNavigationBarType.fixed,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.track_changes),
+          icon: Icon(Icons.location_on_outlined),
+          activeIcon: Icon(Icons.location_on),
           label: 'Tracking',
         ),
         BottomNavigationBarItem(
-          icon: Stack(
-            children: [
-              Icon(Icons.notifications),
-              Positioned(
-                right: 0,
-                child: CircleAvatar(
-                  radius: 8,
-                  backgroundColor: Colors.red,
-                  child: Text(
-                    '2',
-                    style: TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          icon: Icon(Icons.notifications_outlined),
+          activeIcon: Icon(Icons.notifications),
           label: 'Notifications',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.account_circle),
+          icon: Icon(Icons.account_circle_outlined),
+          activeIcon: Icon(Icons.account_circle),
           label: 'Account',
         ),
       ],
-      currentIndex: selectedIndex,
-      selectedItemColor: const Color(0xFF34978A),
-      unselectedItemColor: Colors.grey,
-      onTap: onItemTapped,
-      type: BottomNavigationBarType.fixed,
     );
   }
 }

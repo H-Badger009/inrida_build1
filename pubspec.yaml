@@ -67,6 +67,7 @@ flutter:
     - assets/InRida Logo.png
     - assets/wavy_vector.png
     - assets/google_logo.png
+    - assets/profile_image.jpg
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart'; // Add this for location services
+import 'package:location/location.dart';
+import 'package:inrida/widgets/bottom_nav_bar.dart'; // Import the modularized bottom nav bar
+import 'package:inrida/widgets/sidebar_menu.dart'; // Import the new sidebar menu
 
 class CarOwnerHomeScreen extends StatefulWidget {
   const CarOwnerHomeScreen({super.key});
@@ -14,6 +16,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
   final Location _location = Location();
   LatLng? _currentPosition;
   bool _isLoading = true;
+  int _selectedIndex = 0; // Default to Home screen (index 0)
 
   @override
   void initState() {
@@ -25,7 +28,6 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     bool serviceEnabled;
     PermissionStatus permissionGranted;
 
-    // Check if location services are enabled
     serviceEnabled = await _location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await _location.requestService();
@@ -35,7 +37,6 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
       }
     }
 
-    // Request location permission
     permissionGranted = await _location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await _location.requestPermission();
@@ -45,7 +46,6 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
       }
     }
 
-    // Fetch the current location
     try {
       LocationData locationData = await _location.getLocation();
       setState(() {
@@ -58,13 +58,49 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     }
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        // Already on Home screen, no navigation needed
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/tracking');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/notifications');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/account');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: const Text(
+          'Car Owner Home',
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
+      drawer: const SidebarMenu(), // Add the side-bar menu as a Drawer
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentPosition == null
-              ? const Center(child: Text('Unable to fetch location. Please enable location services.'))
+              ? const Center(
+                  child: Text('Unable to fetch location. Please enable location services.'))
               : GoogleMap(
                   initialCameraPosition: CameraPosition(
                     target: _currentPosition!,
@@ -73,9 +109,13 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
                   onMapCreated: (GoogleMapController controller) {
                     _mapController = controller;
                   },
-                  myLocationEnabled: true, // Show user's location dot
-                  myLocationButtonEnabled: true, // Show button to center on user
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
                 ),
+      bottomNavigationBar: BottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
+      ),
     );
   }
 
