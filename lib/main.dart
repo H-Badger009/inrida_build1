@@ -11,6 +11,7 @@ import 'package:inrida/screens/check_email_screen.dart';
 import 'package:inrida/screens/password_reset_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:inrida/screens/car_owner/car_owner_home_screen.dart';
+import 'package:inrida/screens/account_screen.dart'; // Import the new ProfileScreen
 import 'package:inrida/providers/driver_provider.dart';
 
 void main() async {
@@ -51,7 +52,7 @@ class InRidaApp extends StatelessWidget {
         '/car_owner_home': (context) => const CarOwnerHomeScreen(),
         '/tracking': (context) => const TrackingScreen(),
         '/notifications': (context) => const NotificationsScreen(),
-        '/account': (context) => const AccountScreen(),
+        '/account': (context) => const ProfileScreen(), // Updated to ProfileScreen
         '/my_cars': (context) => const MyCarsScreen(),
         '/trip_history': (context) => const TripHistoryScreen(),
         '/settings': (context) => const SettingsScreen(),
@@ -59,7 +60,6 @@ class InRidaApp extends StatelessWidget {
     );
   }
 }
-
 
 // Placeholder screens
 class TrackingScreen extends StatelessWidget {
@@ -72,12 +72,6 @@ class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
   @override
   Widget build(BuildContext context) => Scaffold(body: Center(child: Text('Notifications')));
-}
-
-class AccountScreen extends StatelessWidget {
-  const AccountScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(body: Center(child: Text('Account')));
 }
 
 class MyCarsScreen extends StatelessWidget {

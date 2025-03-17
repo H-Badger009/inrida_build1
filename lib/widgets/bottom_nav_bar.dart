@@ -16,29 +16,45 @@ class BottomNavBar extends StatelessWidget {
       currentIndex: selectedIndex,
       onTap: onItemTapped,
       backgroundColor: Colors.white,
-      selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.grey,
+      selectedItemColor: Colors.black, // Tint for selected items if needed
+      unselectedItemColor: Colors.grey, // Tint for unselected items if needed
       elevation: 8.0,
       type: BottomNavigationBarType.fixed,
-      items: const [
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
+          icon: Image.asset(
+            'assets/home_icon.png',
+            width: 24,
+            height: 24,
+            color: selectedIndex == 0 ? Colors.black : Colors.grey, // Optional tint
+          ),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.location_on_outlined),
-          activeIcon: Icon(Icons.location_on),
+          icon: Image.asset(
+            'assets/tracking_icon.png',
+            width: 24,
+            height: 24,
+            color: selectedIndex == 1 ? Colors.black : Colors.grey, // Optional tint
+          ),
           label: 'Tracking',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.notifications_outlined),
-          activeIcon: Icon(Icons.notifications),
+          icon: Image.asset(
+            'assets/notifications_icon.png',
+            width: 24,
+            height: 24,
+            color: selectedIndex == 2 ? Colors.black : Colors.grey, // Optional tint
+          ),
           label: 'Notifications',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.account_circle_outlined),
-          activeIcon: Icon(Icons.account_circle),
+          icon: Image.asset(
+            'assets/account_icon.png',
+            width: 24,
+            height: 24,
+            color: selectedIndex == 3 ? Colors.black : Colors.grey, // Optional tint
+          ),
           label: 'Account',
         ),
       ],

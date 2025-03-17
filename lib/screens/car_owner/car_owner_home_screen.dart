@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:inrida/widgets/bottom_nav_bar.dart'; // Import the modularized bottom nav bar
-import 'package:inrida/widgets/sidebar_menu.dart'; // Import the new sidebar menu
+import 'package:inrida/widgets/sidebar_menu.dart'; // Import the sidebar menu
 
 class CarOwnerHomeScreen extends StatefulWidget {
   const CarOwnerHomeScreen({super.key});
@@ -17,6 +17,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
   LatLng? _currentPosition;
   bool _isLoading = true;
   int _selectedIndex = 0; // Default to Home screen (index 0)
+  double _mapBearing = 0.0; // Track the map's rotation
 
   @override
   void initState() {
@@ -78,39 +79,109 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     }
   }
 
+  // Function to reset the map rotation to 0 degrees
+  void _resetMapRotation() {
+    if (_mapController != null && _currentPosition != null) {
+      _mapController.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: _currentPosition!,
+            zoom: 14,
+            bearing: 0.0, // Reset rotation
+          ),
+        ),
+      );
+      setState(() {
+        _mapBearing = 0.0;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: const Text(
-          'Car Owner Home',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-      drawer: const SidebarMenu(), // Add the side-bar menu as a Drawer
+      drawer: const SidebarMenu(), // Keep the side-bar menu as a Drawer
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentPosition == null
               ? const Center(
                   child: Text('Unable to fetch location. Please enable location services.'))
-              : GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: _currentPosition!,
-                    zoom: 14,
-                  ),
-                  onMapCreated: (GoogleMapController controller) {
-                    _mapController = controller;
-                  },
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: true,
+              : Stack(
+                  children: [
+                    // Map as the background
+                    GoogleMap(
+                      compassEnabled: false, // Disable default compass
+                      zoomControlsEnabled: false,
+                      initialCameraPosition: CameraPosition(
+                        target: _currentPosition!,
+                        zoom: 14,
+                        bearing: _mapBearing,
+                      ),
+                      onMapCreated: (GoogleMapController controller) {
+                        _mapController = controller;
+                      },
+                      onCameraMove: (CameraPosition position) {
+                        setState(() {
+                          _mapBearing = position.bearing;
+                        });
+                      },
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: false,
+                    ),
+                    // Hamburger menu icon at the top-left
+                    Positioned(
+                      top: 66, // Adjust based on status bar height
+                      left: 20,
+                      width: 72,
+                      height: 72,
+                      child: Builder(
+                        builder: (context) => GestureDetector(
+                          onTap: () => Scaffold.of(context).openDrawer(),
+                          child: Center(
+                            child: Icon(
+                              Icons.menu,
+                              color: Colors.black,
+                              size: 35,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  offset: Offset(1, 1),
+                                  blurRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Custom compass at the top-right
+                    Positioned(
+                      top: 66, // Same vertical position as hamburger menu
+                      right: 20, // Positioned at the right
+                      width: 72, // Same size as hamburger menu
+                      height: 72,
+                      child: GestureDetector(
+                        onTap: _resetMapRotation, // Reset rotation on tap
+                        child: Center(
+                          child: Transform.rotate(
+                            angle: -_mapBearing * (3.14159 / 180), // Rotate based on map bearing
+                            child: Icon(
+                              Icons.navigation, // Compass-like icon
+                              color: Colors.black,
+                              size: 35,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  offset: Offset(1, 1),
+                                  blurRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,

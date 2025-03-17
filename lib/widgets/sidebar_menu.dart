@@ -26,7 +26,8 @@ class _SidebarMenuState extends State<SidebarMenu> {
     });
     Navigator.pop(context); // Close the drawer
     // Navigate to the corresponding screen if a route is defined
-    if (_menuItems[index]['route'] != null && _menuItems[index]['route'] != '/') {
+    if (_menuItems[index]['route'] != null &&
+        _menuItems[index]['route'] != '/') {
       Navigator.pushNamed(context, _menuItems[index]['route']);
     }
     // If 'Live Map' is selected (route '/'), stay on the home screen (no navigation)
@@ -41,32 +42,41 @@ class _SidebarMenuState extends State<SidebarMenu> {
           children: [
             // Header with user profile
             Container(
-              padding: const EdgeInsets.all(16.0),
-              color: Colors.grey[200], // Light gray background for header
+              width: 301,
+              height: 80,
+              margin: const EdgeInsets.only(top: 74, left: 10, right: 10),
+              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey[200], // Light gray background for header
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(width: 1, color: Colors.grey),
+              ),
               child: Row(
                 children: [
                   const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/profile_image.jpg'), // Placeholder; replace with actual image
+                    radius: 21.5, // Half of the width/height to get the radius
+                    backgroundImage: AssetImage(
+                      'assets/profile_image.jpg',
+                    ), // Placeholder; replace with actual image
                   ),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Excel Asaph', // User name from images
+                        'Excel Asaphssrssrrrs', // User name from images
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                          letterSpacing: -0.01,
                           color: Colors.black,
+                          fontFamily: 'DM Sans',
                         ),
                       ),
                       Text(
                         'Car Owner', // Role from images
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4, letterSpacing: -0.01, fontFamily: 'DM Sans', fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -87,11 +97,15 @@ class _SidebarMenuState extends State<SidebarMenu> {
                     title: Text(
                       _menuItems[index]['title'],
                       style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                         color: isSelected ? Colors.black : Colors.grey[800],
                       ),
                     ),
-                    tileColor: isSelected ? Colors.grey[300] : null, // Highlight selected item
+                    tileColor:
+                        isSelected
+                            ? Colors.grey[300]
+                            : null, // Highlight selected item
                     onTap: () => _onMenuItemTapped(index, context),
                   );
                 },
