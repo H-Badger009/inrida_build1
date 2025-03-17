@@ -27,10 +27,7 @@ class ProfileInfoSection extends StatelessWidget {
       children: [
         const Text(
           'Personal Information',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
@@ -38,6 +35,7 @@ class ProfileInfoSection extends StatelessWidget {
           value: email,
           isEditing: isEditing,
           onChanged: onEmailChanged,
+          placeholder: 'user@inrida.com',
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
@@ -45,6 +43,7 @@ class ProfileInfoSection extends StatelessWidget {
           value: phone,
           isEditing: isEditing,
           onChanged: onPhoneChanged,
+          placeholder: '+250 12 345 6789',
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
@@ -52,6 +51,7 @@ class ProfileInfoSection extends StatelessWidget {
           value: location,
           isEditing: isEditing,
           onChanged: onLocationChanged,
+          placeholder: 'City, Country',
         ),
       ],
     );
@@ -62,6 +62,7 @@ class ProfileInfoSection extends StatelessWidget {
     required String value,
     required bool isEditing,
     required Function(String) onChanged,
+    required String placeholder,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,40 +73,31 @@ class ProfileInfoSection extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 4),
               isEditing
                   ? TextField(
-                      controller: TextEditingController(text: value),
+                      controller: TextEditingController(text: value.isEmpty ? null : value),
                       onChanged: onChanged,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 12,
-                        ),
+                      decoration: InputDecoration(
+                        hintText: value.isEmpty ? placeholder : null,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                       ),
                     )
                   : Text(
-                      value,
-                      style: const TextStyle(
+                      value.isEmpty ? placeholder : value,
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black,
+                        color: value.isEmpty ? Colors.grey : Colors.black,
                       ),
                     ),
             ],
           ),
         ),
         if (!isEditing)
-          const Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: Colors.grey,
-          ),
+          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       ],
     );
   }

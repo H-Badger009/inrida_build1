@@ -13,11 +13,15 @@ import 'package:provider/provider.dart';
 import 'package:inrida/screens/car_owner/car_owner_home_screen.dart';
 import 'package:inrida/screens/account_screen.dart'; // Import the new ProfileScreen
 import 'package:inrida/providers/driver_provider.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug, // Use Play Integrity in production
   );
   runApp(
     MultiProvider(

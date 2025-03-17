@@ -28,22 +28,40 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        GestureDetector(
-          onTap: isEditing ? _pickImage : null,
-          child: CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.grey[200],
-            backgroundImage: profileImage != null && profileImage!.isNotEmpty
-                ? NetworkImage(profileImage!)
-                : null,
-            child: profileImage == null || profileImage!.isEmpty
-                ? const Icon(
-                    Icons.person,
-                    size: 50,
-                    color: Colors.grey,
-                  )
-                : null,
-          ),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            GestureDetector(
+              onTap: isEditing ? _pickImage : null,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: profileImage != null && profileImage!.isNotEmpty
+                    ? NetworkImage(profileImage!)
+                    : null,
+                child: profileImage == null || profileImage!.isEmpty
+                    ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                    : null,
+              ),
+            ),
+            if (isEditing)
+              Positioned(
+                bottom: 5,
+                right: 5,
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey, width: 1),
+                    ),
+                    child: const Icon(Icons.edit, size: 16, color: Colors.grey),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
         isEditing
@@ -55,17 +73,11 @@ class ProfileHeader extends StatelessWidget {
                 textAlign: TextAlign.center,
                 controller: TextEditingController(text: name),
                 onChanged: onNameChanged,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               )
             : Text(
                 name.isEmpty ? 'User' : name,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
       ],
     );

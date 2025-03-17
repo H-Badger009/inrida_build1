@@ -4,10 +4,43 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:inrida/widgets/profile/profile_header.dart';
 import 'package:inrida/widgets/profile/profile_info_section.dart';
 import 'package:inrida/widgets/profile/profile_about_section.dart';
 import 'package:inrida/widgets/profile/profile_settings_section.dart';
+
+class UserData {
+  final String? email;
+  final String? phone;
+  final String? name;
+  final String? profileImage;
+  final String? location;
+  final String? about;
+  final Map<String, dynamic>? settings;
+
+  UserData({
+    this.email,
+    this.phone,
+    this.name,
+    this.profileImage,
+    this.location,
+    this.about,
+    this.settings,
+  });
+}
+
+Future<UserData> processUserData(DocumentSnapshot userDoc) async {
+  return UserData(
+    email: userDoc.get('email') ?? '',
+    phone: userDoc.get('phone') ?? '',
+    name: userDoc.get('name') ?? '',
+    profileImage: userDoc.get('profileImage'),
+    location: userDoc.get('location') ?? '',
+    about: userDoc.get('about') ?? '',
+    settings: userDoc.get('settings') as Map<String, dynamic>?,
+  );
+}
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,7 +51,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditing = false;
-  bool _isLoading = false;
+  bool _isLoading = true;
   String? _name;
   String? _profileImage;
   String? _email;
@@ -29,16 +62,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _newsletter = false;
   bool _twoFactorAuth = false;
 
-  XFile? _newImage; // For holding the new image before saving
+  XFile? _newImage;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
+    _fetchUserDataAsync();
   }
 
-  Future<void> _fetchUserData() async {
-    setState(() => _isLoading = true);
+  Future<void> _fetchUserDataAsync() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -48,28 +80,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .get();
 
         if (userDoc.exists) {
-          setState(() {
-            _email = userDoc.get('email') ?? '';
-            _phone = userDoc.get('phone') ?? '';
-            _name = userDoc.get('name') ?? '';
-            _profileImage = userDoc.get('profileImage');
-            _location = userDoc.get('location') ?? 'City, Country';
-            _about = userDoc.get('about') ?? '';
-            Map<String, dynamic>? settings = userDoc.get('settings');
-            if (settings != null) {
-              _pushNotifications = settings['pushNotifications'] ?? false;
-              _newsletter = settings['newsletter'] ?? false;
-              _twoFactorAuth = settings['twoFactorAuth'] ?? false;
-            }
-          });
+          UserData processedData = await compute(processUserData, userDoc);
+
+          if (mounted) {
+            setState(() {
+              _email = processedData.email;
+              _phone = processedData.phone;
+              _name = processedData.name;
+              _profileImage = processedData.profileImage;
+              _location = processedData.location;
+              _about = processedData.about;
+              Map<String, dynamic>? settings = processedData.settings;
+              if (settings != null) {
+                _pushNotifications = settings['pushNotifications'] ?? false;
+                _newsletter = settings['newsletter'] ?? false;
+                _twoFactorAuth = settings['twoFactorAuth'] ?? false;
+              }
+              _isLoading = false;
+            });
+          }
+        } else {
+          if (mounted) setState(() => _isLoading = false);
         }
+      } else {
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching profile: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching profile: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
     }
-    setState(() => _isLoading = false);
   }
 
   Future<void> _saveProfile() async {
@@ -79,7 +122,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (user != null) {
         String? imageUrl = _profileImage;
 
-        // Upload new profile image if selected
         if (_newImage != null) {
           final storageRef = FirebaseStorage.instance
               .ref()
@@ -89,7 +131,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           imageUrl = await storageRef.getDownloadURL();
         }
 
-        // Update Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -107,34 +148,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         });
 
-        // Update email in Firebase Auth if changed
         if (_email != user.email) {
           await user.updateEmail(_email!);
           await user.sendEmailVerification();
         }
 
-        setState(() {
-          _isEditing = false;
-          _newImage = null; // Clear the temporary image
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
-        );
+        if (mounted) {
+          setState(() {
+            _isEditing = false;
+            _newImage = null;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile updated successfully')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving profile: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving profile: $e')),
+        );
+      }
     }
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
-  // Helper to parse City and Country from full address
   String _parseLocation(String fullAddress) {
-    if (fullAddress == 'City, Country' || fullAddress.isEmpty) {
-      return 'City, Country';
-    }
+    if (fullAddress.isEmpty) return 'City, Country';
     List<String> parts = fullAddress.split(',');
     if (parts.length >= 2) {
       return '${parts[parts.length - 2].trim()}, ${parts.last.trim()}';
@@ -153,7 +193,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile'),
         centerTitle: true,
       ),
-      body: _isLoading || _email == null
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -169,9 +209,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 24),
                   ProfileInfoSection(
-                    email: _email!,
-                    phone: _phone!,
-                    location: _parseLocation(_location!),
+                    email: _email ?? '',
+                    phone: _phone ?? '',
+                    location: _location ?? '',
                     isEditing: _isEditing,
                     onEmailChanged: (value) => setState(() => _email = value),
                     onPhoneChanged: (value) => setState(() => _phone = value),
@@ -187,12 +227,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     newsletter: _newsletter,
                     twoFactorAuth: _twoFactorAuth,
                     isEditing: _isEditing,
-                    onPushNotificationsChanged: (value) =>
-                        setState(() => _pushNotifications = value),
-                    onNewsletterChanged: (value) =>
-                        setState(() => _newsletter = value),
-                    onTwoFactorAuthChanged: (value) =>
-                        setState(() => _twoFactorAuth = value),
+                    onPushNotificationsChanged: (value) => setState(() => _pushNotifications = value),
+                    onNewsletterChanged: (value) => setState(() => _newsletter = value),
+                    onTwoFactorAuthChanged: (value) => setState(() => _twoFactorAuth = value),
                   ),
                   const SizedBox(height: 24),
                   Center(
@@ -200,20 +237,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: _isEditing ? _saveProfile : () => setState(() => _isEditing = true),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       child: Text(
                         _isEditing ? 'Save Profile' : 'Edit Profile',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
+                        style: const TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
                   ),

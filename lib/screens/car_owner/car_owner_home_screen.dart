@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:inrida/widgets/bottom_nav_bar.dart'; // Import the modularized bottom nav bar
-import 'package:inrida/widgets/sidebar_menu.dart'; // Import the sidebar menu
+import 'package:flutter/foundation.dart'; // For compute
+import 'package:inrida/widgets/bottom_nav_bar.dart';
+import 'package:inrida/widgets/sidebar_menu.dart';
+
+// Class to hold location data for compute
+class LocationDataResult {
+  final LatLng? position;
+  final String? error;
+
+  LocationDataResult({this.position, this.error});
+}
+
+// Function to fetch location off the main thread
+Future<LocationDataResult> fetchLocationData(Location location) async {
+  try {
+    LocationData locationData = await location.getLocation();
+    return LocationDataResult(
+      position: LatLng(locationData.latitude!, locationData.longitude!),
+    );
+  } catch (e) {
+    return LocationDataResult(error: 'Error fetching location: $e');
+  }
+}
 
 class CarOwnerHomeScreen extends StatefulWidget {
   const CarOwnerHomeScreen({super.key});
@@ -16,16 +37,16 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
   final Location _location = Location();
   LatLng? _currentPosition;
   bool _isLoading = true;
-  int _selectedIndex = 0; // Default to Home screen (index 0)
-  double _mapBearing = 0.0; // Track the map's rotation
+  int _selectedIndex = 0;
+  double _mapBearing = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _requestLocationPermission();
+    _requestLocationPermissionAsync();
   }
 
-  Future<void> _requestLocationPermission() async {
+  Future<void> _requestLocationPermissionAsync() async {
     bool serviceEnabled;
     PermissionStatus permissionGranted;
 
@@ -33,7 +54,9 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     if (!serviceEnabled) {
       serviceEnabled = await _location.requestService();
       if (!serviceEnabled) {
-        setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
         return;
       }
     }
@@ -42,20 +65,26 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await _location.requestPermission();
       if (permissionGranted != PermissionStatus.granted) {
-        setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
         return;
       }
     }
 
-    try {
-      LocationData locationData = await _location.getLocation();
+    // Fetch location off the main thread
+    LocationDataResult result = await compute(fetchLocationData, _location);
+
+    if (mounted) {
       setState(() {
-        _currentPosition = LatLng(locationData.latitude!, locationData.longitude!);
+        if (result.error != null) {
+          print(result.error);
+          _isLoading = false;
+          return;
+        }
+        _currentPosition = result.position;
         _isLoading = false;
       });
-    } catch (e) {
-      print('Error fetching location: $e');
-      setState(() => _isLoading = false);
     }
   }
 
@@ -65,7 +94,6 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     });
     switch (index) {
       case 0:
-        // Already on Home screen, no navigation needed
         break;
       case 1:
         Navigator.pushNamed(context, '/tracking');
@@ -79,7 +107,6 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     }
   }
 
-  // Function to reset the map rotation to 0 degrees
   void _resetMapRotation() {
     if (_mapController != null && _currentPosition != null) {
       _mapController.animateCamera(
@@ -87,7 +114,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
           CameraPosition(
             target: _currentPosition!,
             zoom: 14,
-            bearing: 0.0, // Reset rotation
+            bearing: 0.0,
           ),
         ),
       );
@@ -100,7 +127,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const SidebarMenu(), // Keep the side-bar menu as a Drawer
+      drawer: const SidebarMenu(),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentPosition == null
@@ -108,9 +135,8 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
                   child: Text('Unable to fetch location. Please enable location services.'))
               : Stack(
                   children: [
-                    // Map as the background
                     GoogleMap(
-                      compassEnabled: false, // Disable default compass
+                      compassEnabled: false,
                       zoomControlsEnabled: false,
                       initialCameraPosition: CameraPosition(
                         target: _currentPosition!,
@@ -128,54 +154,64 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
                       myLocationEnabled: true,
                       myLocationButtonEnabled: false,
                     ),
-                    // Hamburger menu icon at the top-left
                     Positioned(
-                      top: 66, // Adjust based on status bar height
+                      top: 66,
                       left: 20,
-                      width: 72,
-                      height: 72,
+                      width: 50,
+                      height: 50,
                       child: Builder(
                         builder: (context) => GestureDetector(
                           onTap: () => Scaffold.of(context).openDrawer(),
-                          child: Center(
-                            child: Icon(
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
                               Icons.menu,
                               color: Colors.black,
                               size: 35,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withOpacity(0.5),
-                                  offset: Offset(1, 1),
-                                  blurRadius: 2,
-                                ),
-                              ],
                             ),
                           ),
                         ),
                       ),
                     ),
-                    // Custom compass at the top-right
                     Positioned(
-                      top: 66, // Same vertical position as hamburger menu
-                      right: 20, // Positioned at the right
-                      width: 72, // Same size as hamburger menu
-                      height: 72,
+                      top: 66,
+                      right: 20,
+                      width: 50,
+                      height: 50,
                       child: GestureDetector(
-                        onTap: _resetMapRotation, // Reset rotation on tap
-                        child: Center(
+                        onTap: _resetMapRotation,
+                        child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                spreadRadius: 1,
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
                           child: Transform.rotate(
-                            angle: -_mapBearing * (3.14159 / 180), // Rotate based on map bearing
-                            child: Icon(
-                              Icons.navigation, // Compass-like icon
+                            angle: -_mapBearing * (3.14159 / 180),
+                            child: const Icon(
+                              Icons.navigation,
                               color: Colors.black,
                               size: 35,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withOpacity(0.5),
-                                  offset: Offset(1, 1),
-                                  blurRadius: 2,
-                                ),
-                              ],
                             ),
                           ),
                         ),

@@ -20,10 +20,7 @@ class ProfileAboutSection extends StatelessWidget {
         const SizedBox(height: 24),
         const Text(
           'About',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         isEditing
@@ -32,22 +29,14 @@ class ProfileAboutSection extends StatelessWidget {
                 onChanged: onAboutChanged,
                 maxLines: 3,
                 decoration: const InputDecoration(
+                  hintText: "I'm a professional doctor with...",
                   border: OutlineInputBorder(),
-                  hintText: 'Tell us about yourself...',
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 12,
-                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 ),
               )
             : Text(
-                about.isEmpty
-                    ? 'No information provided.'
-                    : about,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
+                about.isEmpty ? "I'm a professional doctor with..." : about,
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
       ],
     );
