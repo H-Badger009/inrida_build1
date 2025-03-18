@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ProfileInfoSection extends StatelessWidget {
-  final String email;
-  final String phone;
-  final String location;
+  final TextEditingController emailController;
+  final TextEditingController phoneController;
+  final TextEditingController locationController;
   final bool isEditing;
   final Function(String) onEmailChanged;
   final Function(String) onPhoneChanged;
@@ -11,9 +11,9 @@ class ProfileInfoSection extends StatelessWidget {
 
   const ProfileInfoSection({
     super.key,
-    required this.email,
-    required this.phone,
-    required this.location,
+    required this.emailController,
+    required this.phoneController,
+    required this.locationController,
     required this.isEditing,
     required this.onEmailChanged,
     required this.onPhoneChanged,
@@ -32,7 +32,7 @@ class ProfileInfoSection extends StatelessWidget {
         const SizedBox(height: 16),
         _buildInfoRow(
           label: 'Email',
-          value: email,
+          controller: emailController,
           isEditing: isEditing,
           onChanged: onEmailChanged,
           placeholder: 'user@inrida.com',
@@ -40,7 +40,7 @@ class ProfileInfoSection extends StatelessWidget {
         const SizedBox(height: 16),
         _buildInfoRow(
           label: 'Phone',
-          value: phone,
+          controller: phoneController,
           isEditing: isEditing,
           onChanged: onPhoneChanged,
           placeholder: '+250 12 345 6789',
@@ -48,7 +48,7 @@ class ProfileInfoSection extends StatelessWidget {
         const SizedBox(height: 16),
         _buildInfoRow(
           label: 'Location',
-          value: location,
+          controller: locationController,
           isEditing: isEditing,
           onChanged: onLocationChanged,
           placeholder: 'City, Country',
@@ -59,7 +59,7 @@ class ProfileInfoSection extends StatelessWidget {
 
   Widget _buildInfoRow({
     required String label,
-    required String value,
+    required TextEditingController controller,
     required bool isEditing,
     required Function(String) onChanged,
     required String placeholder,
@@ -78,19 +78,20 @@ class ProfileInfoSection extends StatelessWidget {
               const SizedBox(height: 4),
               isEditing
                   ? TextField(
-                      controller: TextEditingController(text: value.isEmpty ? null : value),
+                      controller: controller,
                       onChanged: onChanged,
                       decoration: InputDecoration(
-                        hintText: value.isEmpty ? placeholder : null,
+                        hintText: controller.text.isEmpty ? placeholder : null,
                         border: const OutlineInputBorder(),
                         contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                       ),
+                      textDirection: TextDirection.ltr, // Force LTR
                     )
                   : Text(
-                      value.isEmpty ? placeholder : value,
+                      controller.text.isEmpty ? placeholder : controller.text,
                       style: TextStyle(
                         fontSize: 16,
-                        color: value.isEmpty ? Colors.grey : Colors.black,
+                        color: controller.text.isEmpty ? Colors.grey : Colors.black,
                       ),
                     ),
             ],

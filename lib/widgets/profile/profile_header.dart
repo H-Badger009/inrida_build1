@@ -4,24 +4,28 @@ import 'dart:io';
 
 class ProfileHeader extends StatelessWidget {
   final String name;
-  final String? profileImage;
+  final String? profileImage; // URL from Firestore
+  final XFile? newImage; // Local image file before upload
   final bool isEditing;
-  final Function(String) onNameChanged;
+  final TextEditingController nameController;
   final Function(XFile?) onImageChanged;
 
   const ProfileHeader({
     super.key,
     required this.name,
     required this.profileImage,
+    required this.newImage,
     required this.isEditing,
-    required this.onNameChanged,
+    required this.nameController,
     required this.onImageChanged,
   });
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    onImageChanged(image);
+    if (image != null) {
+      onImageChanged(image); // Notify parent to update _newImage
+    }
   }
 
   @override
@@ -36,10 +40,12 @@ class ProfileHeader extends StatelessWidget {
               child: CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.grey[200],
-                backgroundImage: profileImage != null && profileImage!.isNotEmpty
-                    ? NetworkImage(profileImage!)
-                    : null,
-                child: profileImage == null || profileImage!.isEmpty
+                backgroundImage: newImage != null
+                    ? FileImage(File(newImage!.path)) // Show local image if picked
+                    : (profileImage != null && profileImage!.isNotEmpty
+                        ? NetworkImage(profileImage!) // Show Firestore image if available
+                        : null),
+                child: (newImage == null && (profileImage == null || profileImage!.isEmpty))
                     ? const Icon(Icons.person, size: 50, color: Colors.grey)
                     : null,
               ),
@@ -71,9 +77,10 @@ class ProfileHeader extends StatelessWidget {
                   border: OutlineInputBorder(),
                 ),
                 textAlign: TextAlign.center,
-                controller: TextEditingController(text: name),
-                onChanged: onNameChanged,
+                controller: nameController,
+                onChanged: (value) {}, // Handled by parent
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textDirection: TextDirection.ltr, // Force LTR
               )
             : Text(
                 name.isEmpty ? 'User' : name,

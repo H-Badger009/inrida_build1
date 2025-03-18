@@ -62,12 +62,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _newsletter = false;
   bool _twoFactorAuth = false;
 
+  // Initialize controllers directly, no 'late' keyword
+  TextEditingController _nameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _phoneController = TextEditingController();
+  TextEditingController _locationController = TextEditingController();
+  TextEditingController _aboutController = TextEditingController();
+
   XFile? _newImage;
 
   @override
   void initState() {
     super.initState();
     _fetchUserDataAsync();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _locationController.dispose();
+    _aboutController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchUserDataAsync() async {
@@ -81,7 +98,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         if (userDoc.exists) {
           UserData processedData = await compute(processUserData, userDoc);
-
           if (mounted) {
             setState(() {
               _email = processedData.email;
@@ -90,6 +106,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _profileImage = processedData.profileImage;
               _location = processedData.location;
               _about = processedData.about;
+              _nameController.text = _name ?? '';
+              _emailController.text = _email ?? '';
+              _phoneController.text = _phone ?? '';
+              _locationController.text = _location ?? '';
+              _aboutController.text = _about ?? '';
               Map<String, dynamic>? settings = processedData.settings;
               if (settings != null) {
                 _pushNotifications = settings['pushNotifications'] ?? false;
@@ -135,11 +156,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .collection('users')
             .doc(user.uid)
             .update({
-          'name': _name,
-          'email': _email,
-          'phone': _phone,
-          'location': _location,
-          'about': _about,
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'phone': _phoneController.text,
+          'location': _locationController.text,
+          'about': _aboutController.text,
           'profileImage': imageUrl,
           'settings': {
             'pushNotifications': _pushNotifications,
@@ -148,8 +169,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         });
 
-        if (_email != user.email) {
-          await user.updateEmail(_email!);
+        if (_emailController.text != user.email) {
+          await user.updateEmail(_emailController.text);
           await user.sendEmailVerification();
         }
 
@@ -157,6 +178,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           setState(() {
             _isEditing = false;
             _newImage = null;
+            _name = _nameController.text;
+            _email = _emailController.text;
+            _phone = _phoneController.text;
+            _location = _locationController.text;
+            _about = _aboutController.text;
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile updated successfully')),
@@ -171,15 +197,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
     if (mounted) setState(() => _isLoading = false);
-  }
-
-  String _parseLocation(String fullAddress) {
-    if (fullAddress.isEmpty) return 'City, Country';
-    List<String> parts = fullAddress.split(',');
-    if (parts.length >= 2) {
-      return '${parts[parts.length - 2].trim()}, ${parts.last.trim()}';
-    }
-    return fullAddress;
   }
 
   @override
@@ -204,21 +221,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     name: _name ?? '',
                     profileImage: _profileImage,
                     isEditing: _isEditing,
-                    onNameChanged: (value) => setState(() => _name = value),
-                    onImageChanged: (image) => setState(() => _newImage = image),
+                    nameController: _nameController,
+                    onImageChanged: (image) => setState(() => _newImage = image), newImage: null,
                   ),
                   const SizedBox(height: 24),
                   ProfileInfoSection(
-                    email: _email ?? '',
-                    phone: _phone ?? '',
-                    location: _location ?? '',
+                    emailController: _emailController,
+                    phoneController: _phoneController,
+                    locationController: _locationController,
                     isEditing: _isEditing,
                     onEmailChanged: (value) => setState(() => _email = value),
                     onPhoneChanged: (value) => setState(() => _phone = value),
                     onLocationChanged: (value) => setState(() => _location = value),
                   ),
                   ProfileAboutSection(
-                    about: _about ?? '',
+                    aboutController: _aboutController,
                     isEditing: _isEditing,
                     onAboutChanged: (value) => setState(() => _about = value),
                   ),

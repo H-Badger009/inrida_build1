@@ -1,29 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:flutter/foundation.dart'; // For compute
 import 'package:inrida/widgets/bottom_nav_bar.dart';
 import 'package:inrida/widgets/sidebar_menu.dart';
-
-// Class to hold location data for compute
-class LocationDataResult {
-  final LatLng? position;
-  final String? error;
-
-  LocationDataResult({this.position, this.error});
-}
-
-// Function to fetch location off the main thread
-Future<LocationDataResult> fetchLocationData(Location location) async {
-  try {
-    LocationData locationData = await location.getLocation();
-    return LocationDataResult(
-      position: LatLng(locationData.latitude!, locationData.longitude!),
-    );
-  } catch (e) {
-    return LocationDataResult(error: 'Error fetching location: $e');
-  }
-}
 
 class CarOwnerHomeScreen extends StatefulWidget {
   const CarOwnerHomeScreen({super.key});
@@ -33,7 +12,7 @@ class CarOwnerHomeScreen extends StatefulWidget {
 }
 
 class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
-  late GoogleMapController _mapController;
+  GoogleMapController? _mapController; // Nullable, not late
   final Location _location = Location();
   LatLng? _currentPosition;
   bool _isLoading = true;
@@ -50,42 +29,65 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
     bool serviceEnabled;
     PermissionStatus permissionGranted;
 
+    // Check if location services are enabled
     serviceEnabled = await _location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await _location.requestService();
       if (!serviceEnabled) {
         if (mounted) {
           setState(() => _isLoading = false);
+          _showLocationError('Location services are disabled.');
         }
         return;
       }
     }
 
+    // Check and request location permission
     permissionGranted = await _location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await _location.requestPermission();
       if (permissionGranted != PermissionStatus.granted) {
         if (mounted) {
           setState(() => _isLoading = false);
+          _showLocationError('Location permission denied.');
         }
         return;
       }
+    } else if (permissionGranted == PermissionStatus.deniedForever) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showLocationError(
+            'Location permission denied permanently. Please enable it in app settings.');
+      }
+      return;
     }
 
-    // Fetch location off the main thread
-    LocationDataResult result = await compute(fetchLocationData, _location);
-
-    if (mounted) {
-      setState(() {
-        if (result.error != null) {
-          print(result.error);
+    // Fetch location
+    try {
+      LocationData locationData = await _location.getLocation();
+      if (mounted) {
+        setState(() {
+          _currentPosition = LatLng(locationData.latitude!, locationData.longitude!);
           _isLoading = false;
-          return;
+        });
+        // Update map camera if controller is already initialized
+        if (_mapController != null) {
+          _updateMapCamera();
         }
-        _currentPosition = result.position;
-        _isLoading = false;
-      });
+      }
+    } catch (e) {
+      if (mounted) {
+        print('Location fetch error: $e');
+        setState(() => _isLoading = false);
+        _showLocationError('Error fetching location: $e');
+      }
     }
+  }
+
+  void _showLocationError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   void _onItemTapped(int index) {
@@ -109,7 +111,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
 
   void _resetMapRotation() {
     if (_mapController != null && _currentPosition != null) {
-      _mapController.animateCamera(
+      _mapController!.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
             target: _currentPosition!,
@@ -121,6 +123,24 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
       setState(() {
         _mapBearing = 0.0;
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Map is still loading...')),
+      );
+    }
+  }
+
+  void _updateMapCamera() {
+    if (_mapController != null && _currentPosition != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: _currentPosition!,
+            zoom: 14,
+            bearing: _mapBearing,
+          ),
+        ),
+      );
     }
   }
 
@@ -139,12 +159,14 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
                       compassEnabled: false,
                       zoomControlsEnabled: false,
                       initialCameraPosition: CameraPosition(
-                        target: _currentPosition!,
+                        target: _currentPosition ?? const LatLng(0.0, 0.0), // Fallback
                         zoom: 14,
                         bearing: _mapBearing,
                       ),
                       onMapCreated: (GoogleMapController controller) {
+                        print('Map created, initializing controller');
                         _mapController = controller;
+                        _updateMapCamera(); // Center map once controller is ready
                       },
                       onCameraMove: (CameraPosition position) {
                         setState(() {
@@ -169,7 +191,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
+                                  color: Colors.black.withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 3,
                                   offset: const Offset(0, 1),
@@ -199,7 +221,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
+                                color: Colors.black.withOpacity(0.1),
                                 spreadRadius: 1,
                                 blurRadius: 3,
                                 offset: const Offset(0, 1),
@@ -228,7 +250,7 @@ class _CarOwnerHomeScreenState extends State<CarOwnerHomeScreen> {
 
   @override
   void dispose() {
-    _mapController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 }

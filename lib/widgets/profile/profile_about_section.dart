@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class ProfileAboutSection extends StatelessWidget {
-  final String about;
+  final TextEditingController aboutController;
   final bool isEditing;
   final Function(String) onAboutChanged;
 
   const ProfileAboutSection({
     super.key,
-    required this.about,
+    required this.aboutController,
     required this.isEditing,
     required this.onAboutChanged,
   });
@@ -25,7 +25,7 @@ class ProfileAboutSection extends StatelessWidget {
         const SizedBox(height: 16),
         isEditing
             ? TextField(
-                controller: TextEditingController(text: about),
+                controller: aboutController,
                 onChanged: onAboutChanged,
                 maxLines: 3,
                 decoration: const InputDecoration(
@@ -33,9 +33,10 @@ class ProfileAboutSection extends StatelessWidget {
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 ),
+                textDirection: TextDirection.ltr, // Force LTR
               )
             : Text(
-                about.isEmpty ? "I'm a professional doctor with..." : about,
+                aboutController.text.isEmpty ? "I'm a professional doctor with..." : aboutController.text,
                 style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
       ],

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
-import 'screens/log_in_screen.dart';
 import 'screens/create_account_screen.dart';
+import 'screens/log_in_screen.dart';
+import 'screens/role_selection_screen.dart';
 import 'screens/verify_account_screen.dart';
 import 'screens/email_verified_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -11,7 +12,7 @@ import 'package:inrida/screens/check_email_screen.dart';
 import 'package:inrida/screens/password_reset_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:inrida/screens/car_owner/car_owner_home_screen.dart';
-import 'package:inrida/screens/account_screen.dart'; // Import the new ProfileScreen
+import 'package:inrida/screens/account_screen.dart';
 import 'package:inrida/providers/driver_provider.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
@@ -47,7 +48,7 @@ class InRidaApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => LogInScreen(),
-        '/create_account': (context) => CreateAccountScreen(selectedRole: 'defaultRole'),
+        '/role_selection': (context) => const RoleSelectionScreen(),
         '/verify_account': (context) => const VerifyAccountScreen(),
         '/email_verified': (context) => const EmailVerifiedScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
@@ -56,10 +57,11 @@ class InRidaApp extends StatelessWidget {
         '/car_owner_home': (context) => const CarOwnerHomeScreen(),
         '/tracking': (context) => const TrackingScreen(),
         '/notifications': (context) => const NotificationsScreen(),
-        '/account': (context) => const ProfileScreen(), // Updated to ProfileScreen
+        '/account': (context) => const ProfileScreen(),
         '/my_cars': (context) => const MyCarsScreen(),
         '/trip_history': (context) => const TripHistoryScreen(),
         '/settings': (context) => const SettingsScreen(),
+        '/create_account': (context) => const CreateAccountScreen(selectedRole: '',),
       },
     );
   }
