@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
-import 'screens/create_account_screen.dart';
 import 'screens/log_in_screen.dart';
-import 'screens/role_selection_screen.dart';
+import 'screens/create_account_screen.dart';
 import 'screens/verify_account_screen.dart';
 import 'screens/email_verified_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -14,6 +13,9 @@ import 'package:provider/provider.dart';
 import 'package:inrida/screens/car_owner/car_owner_home_screen.dart';
 import 'package:inrida/screens/account_screen.dart';
 import 'package:inrida/providers/driver_provider.dart';
+import 'package:inrida/providers/user_provider.dart';
+import 'package:inrida/providers/vehicle_provider.dart'; // Add VehicleProvider
+import 'package:inrida/screens/vehicles_screen.dart'; // Add VehiclesScreen
 import 'package:firebase_app_check/firebase_app_check.dart';
 
 void main() async {
@@ -22,12 +24,14 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug, // Use Play Integrity in production
+    androidProvider: AndroidProvider.debug,
   );
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => DriverProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => VehicleProvider()), // Add VehicleProvider
       ],
       child: const InRidaApp(),
     ),
@@ -47,8 +51,8 @@ class InRidaApp extends StatelessWidget {
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),
-        '/login': (context) => LogInScreen(),
-        '/role_selection': (context) => const RoleSelectionScreen(),
+        '/login': (context) => const LogInScreen(),
+        '/create_account': (context) => const CreateAccountScreen(selectedRole: 'defaultRole'),
         '/verify_account': (context) => const VerifyAccountScreen(),
         '/email_verified': (context) => const EmailVerifiedScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
@@ -61,13 +65,13 @@ class InRidaApp extends StatelessWidget {
         '/my_cars': (context) => const MyCarsScreen(),
         '/trip_history': (context) => const TripHistoryScreen(),
         '/settings': (context) => const SettingsScreen(),
-        '/create_account': (context) => const CreateAccountScreen(selectedRole: '',),
+        '/vehicles': (context) => const VehiclesScreen(), // Add Vehicles route
       },
     );
   }
 }
 
-// Placeholder screens
+// Placeholder screens remain unchanged
 class TrackingScreen extends StatelessWidget {
   const TrackingScreen({super.key});
   @override

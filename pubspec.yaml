@@ -44,6 +44,8 @@ dependencies:
   firebase_storage: ^12.4.4
   firebase_app_check: ^0.3.2+4
   google_maps_flutter: ^2.10.1
+  intl: ^0.20.2
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +77,14 @@ flutter:
     - assets/tracking_icon.png
     - assets/notifications_icon.png
     - assets/account_icon.png
+    - assets/upload_file.png
+    - assets/empty_list.png
+    - assets/3_dots.png
+    - assets/add_newcar.png
+    - assets/add_car_badge.png
+    - assets/year.png
+    - assets/carbon_meter.png
+    - assets/location-icon.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

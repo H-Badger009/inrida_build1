@@ -118,20 +118,20 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                         RoleCard(
                           iconPath: 'assets/ion_car-sport-sharp.png',
                           label: 'Car Owner',
-                          isSelected: selectedRole == 'car_owner',
-                          onTap: () => setState(() => selectedRole = 'car_owner'),
+                          isSelected: selectedRole == 'Car Owner',
+                          onTap: () => setState(() => selectedRole = 'Car Owner'),
                         ),
                         RoleCard(
                           iconPath: 'assets/mingcute_steering-wheel-fill.png',
                           label: 'Driver',
-                          isSelected: selectedRole == 'driver',
-                          onTap: () => setState(() => selectedRole = 'driver'),
+                          isSelected: selectedRole == 'Driver',
+                          onTap: () => setState(() => selectedRole = 'Driver'),
                         ),
                         RoleCard(
                           iconPath: 'assets/tabler_user-filled.png',
                           label: 'Rider (Client)',
-                          isSelected: selectedRole == 'rider',
-                          onTap: () => setState(() => selectedRole = 'rider'),
+                          isSelected: selectedRole == 'Rider',
+                          onTap: () => setState(() => selectedRole = 'Rider'),
                         ),
                       ],
                     ),
@@ -159,13 +159,15 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                         ),
                         minimumSize: const Size(350, 56),
                       ),
-                      child: const Text(
-                        'Continue',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'SansSerif',
+                      child: Center(
+                        child: const Text(
+                          'Continue',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'SansSerif',
+                          ),
                         ),
                       ),
                     ),
