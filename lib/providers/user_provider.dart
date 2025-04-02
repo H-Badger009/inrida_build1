@@ -5,52 +5,58 @@ class UserProfile {
   String? uid;
   String? email;
   String? phone;
-  String? name;
+  String? firstName;
+  String? lastName;
   String? profileImage;
-  String? location;
+  Map<String, String>? location; // Changed to Map<String, String>?
   String? about;
-  String? role; // Added for role-based navigation
+  String? role;
   Map<String, dynamic>? settings;
+  bool? isVerified;
 
   UserProfile({
     this.uid,
     this.email,
     this.phone,
-    this.name,
+    this.firstName,
+    this.lastName,
     this.profileImage,
     this.location,
     this.about,
     this.role,
     this.settings,
+    this.isVerified,
   });
 
-  // Factory to create from Firestore data
   factory UserProfile.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
     return UserProfile(
       uid: doc.id,
       email: data?['email'] as String?,
       phone: data?['phone'] as String?,
-      name: data?['name'] as String?,
+      firstName: data?['firstName'] as String?,
+      lastName: data?['lastName'] as String?,
       profileImage: data?['profileImage'] as String?,
-      location: data?['location'] as String?,
+      location: data?['location'] is Map ? Map<String, String>.from(data!['location']) : null,
       about: data?['about'] as String?,
       role: data?['role'] as String?,
       settings: data?['settings'] as Map<String, dynamic>?,
+      isVerified: data?['isVerified'] as bool?,
     );
   }
 
-  // Convert to map for Firestore update
   Map<String, dynamic> toMap() {
     return {
       'email': email,
       'phone': phone,
-      'name': name,
+      'firstName': firstName,
+      'lastName': lastName,
       'profileImage': profileImage,
       'location': location,
       'about': about,
       'role': role,
       'settings': settings,
+      'isVerified': isVerified,
     };
   }
 }

@@ -3,21 +3,37 @@ import 'package:flutter/material.dart';
 class ProfileInfoSection extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController phoneController;
-  final TextEditingController locationController;
+  final TextEditingController streetAddressController;
+  final TextEditingController townController;
+  final TextEditingController cityController;
+  final TextEditingController countryController;
+  final TextEditingController postalCodeController;
   final bool isEditing;
   final Function(String) onEmailChanged;
   final Function(String) onPhoneChanged;
-  final Function(String) onLocationChanged;
+  final Function(String) onStreetAddressChanged;
+  final Function(String) onTownChanged;
+  final Function(String) onCityChanged;
+  final Function(String) onCountryChanged;
+  final Function(String) onPostalCodeChanged;
 
   const ProfileInfoSection({
     super.key,
     required this.emailController,
     required this.phoneController,
-    required this.locationController,
+    required this.streetAddressController,
+    required this.townController,
+    required this.cityController,
+    required this.countryController,
+    required this.postalCodeController,
     required this.isEditing,
     required this.onEmailChanged,
     required this.onPhoneChanged,
-    required this.onLocationChanged,
+    required this.onStreetAddressChanged,
+    required this.onTownChanged,
+    required this.onCityChanged,
+    required this.onCountryChanged,
+    required this.onPostalCodeChanged,
   });
 
   @override
@@ -47,11 +63,43 @@ class ProfileInfoSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
-          label: 'Location',
-          controller: locationController,
+          label: 'Street Address',
+          controller: streetAddressController,
           isEditing: isEditing,
-          onChanged: onLocationChanged,
-          placeholder: 'City, Country',
+          onChanged: onStreetAddressChanged,
+          placeholder: '123 Main St',
+        ),
+        const SizedBox(height: 16),
+        _buildInfoRow(
+          label: 'Town',
+          controller: townController,
+          isEditing: isEditing,
+          onChanged: onTownChanged,
+          placeholder: 'Springfield',
+        ),
+        const SizedBox(height: 16),
+        _buildInfoRow(
+          label: 'City',
+          controller: cityController,
+          isEditing: isEditing,
+          onChanged: onCityChanged,
+          placeholder: 'Metropolis',
+        ),
+        const SizedBox(height: 16),
+        _buildInfoRow(
+          label: 'Country',
+          controller: countryController,
+          isEditing: isEditing,
+          onChanged: onCountryChanged,
+          placeholder: 'USA',
+        ),
+        const SizedBox(height: 16),
+        _buildInfoRow(
+          label: 'Postal Code',
+          controller: postalCodeController,
+          isEditing: isEditing,
+          onChanged: onPostalCodeChanged,
+          placeholder: '12345',
         ),
       ],
     );

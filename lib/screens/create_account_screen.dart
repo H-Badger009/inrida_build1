@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Add this import for Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+import 'package:inrida/providers/user_provider.dart';
 
 class CreateAccountScreen extends StatefulWidget {
-  final String selectedRole; // Add this to accept the selected role
+  final String selectedRole;
 
-  const CreateAccountScreen({super.key, required this.selectedRole}); // Update constructor
+  const CreateAccountScreen({super.key, required this.selectedRole});
 
   @override
   State<CreateAccountScreen> createState() => _CreateAccountScreenState();
@@ -29,14 +32,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       );
       User? user = userCredential.user;
       if (user != null) {
-        // Store user data in Firestore, including the selected role
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'email': user.email,
           'phone': _phoneController.text.trim(),
-          'role': widget.selectedRole, // Store the selected role
+          'role': widget.selectedRole,
+          'firstName': '',
+          'lastName': '',
+          'profileImage': '',
           'createdAt': FieldValue.serverTimestamp(),
+          'isVerified': widget.selectedRole == 'Driver' ? false : true, // Drivers start unverified
         });
-
         await user.sendEmailVerification();
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/verify_account');
@@ -52,6 +57,66 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user != null) {
+        final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+        if (isNewUser) {
+          final googleName = googleUser.displayName ?? 'Unknown';
+          final googleProfileImage = user.photoURL ?? '';
+          final nameParts = googleName
+              .split(' ')
+              .where((word) => word.isNotEmpty)
+              .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+              .toList();
+          final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+          final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+            'email': user.email,
+            'firstName': firstName,
+            'lastName': lastName,
+            'profileImage': googleProfileImage,
+            'role': widget.selectedRole,
+            'phone': '',
+            'createdAt': FieldValue.serverTimestamp(),
+            'isVerified': widget.selectedRole == 'Driver' ? false : true, // Drivers start unverified
+          });
+        }
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        await userProvider.fetchUserData(user.uid);
+        final role = userProvider.userProfile?.role;
+        if (role == 'Car Owner') {
+          Navigator.pushReplacementNamed(context, '/car_owner_home');
+        } else if (role == 'Driver') {
+          Navigator.pushReplacementNamed(context, '/driver_home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Role not authorized for this dashboard')),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error signing in with Google: $e')),
+      );
+    }
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -111,7 +176,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushNamed(context, '/login'); // Adjust route
+                              Navigator.pushNamed(context, '/login');
                             },
                             child: const Text(
                               'Log In',
@@ -189,9 +254,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           fontFamily: 'DM Sans',
                         ),
                         initialCountryCode: 'RW',
-                        onChanged: (phone) {
-                          // Handle phone number change if needed
-                        },
+                        onChanged: (phone) {},
                       ),
                       const SizedBox(height: 20),
                       const Text(
@@ -312,11 +375,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       ),
                       const SizedBox(height: 20),
                       OutlinedButton.icon(
-                        onPressed: () {
-                          // Handle Google sign-in (implement if needed)
-                        },
+                        onPressed: _signInWithGoogle,
                         icon: Image.asset(
-                          'assets/google_logo.png', // Ensure asset is added
+                          'assets/google_logo.png',
                           width: 24,
                           height: 24,
                         ),

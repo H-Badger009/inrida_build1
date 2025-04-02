@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Vehicle {
   final String id;
   final String name;
-  final String licensePlate; // Added field
+  final String licensePlate;
   final String exteriorPhotoUrl;
   final String interiorPhotoUrl;
   final String ownershipCertificateUrl;
@@ -15,9 +15,15 @@ class Vehicle {
   final String location;
   final DateTime listedDate;
   final String status;
-  final DateTime? roadworthinessExpiry; // Added field
-  final DateTime? licenseExpiry; // Added field
-  final DateTime? hackneyExpiry; // Added field
+  final DateTime? roadworthinessExpiry;
+  final DateTime? licenseExpiry;
+  final DateTime? hackneyExpiry;
+  final GeoPoint? coordinates;
+  final int favoriteCount;
+  final List<String> favoritedBy;
+  final String manufacture; // Added for filtering
+  final String model; // Added for filtering
+  final String color; // Added for filtering
 
   Vehicle({
     required this.id,
@@ -37,6 +43,12 @@ class Vehicle {
     this.roadworthinessExpiry,
     this.licenseExpiry,
     this.hackneyExpiry,
+    this.coordinates,
+    this.favoriteCount = 0,
+    this.favoritedBy = const [],
+    required this.manufacture,
+    required this.model,
+    required this.color,
   });
 
   factory Vehicle.fromFirestore(DocumentSnapshot doc) {
@@ -44,7 +56,7 @@ class Vehicle {
     return Vehicle(
       id: doc.id,
       name: data['name'] ?? '',
-      licensePlate: data['licensePlate'] ?? '', // New field
+      licensePlate: data['licensePlate'] ?? '',
       exteriorPhotoUrl: data['exteriorPhotoUrl'] ?? '',
       interiorPhotoUrl: data['interiorPhotoUrl'] ?? '',
       ownershipCertificateUrl: data['ownershipCertificateUrl'] ?? '',
@@ -58,20 +70,26 @@ class Vehicle {
       status: data['status'] ?? 'Pending',
       roadworthinessExpiry: data['roadworthinessExpiry'] != null
           ? (data['roadworthinessExpiry'] as Timestamp).toDate()
-          : null, // Handle nullable field
+          : null,
       licenseExpiry: data['licenseExpiry'] != null
           ? (data['licenseExpiry'] as Timestamp).toDate()
-          : null, // Handle nullable field
+          : null,
       hackneyExpiry: data['hackneyExpiry'] != null
           ? (data['hackneyExpiry'] as Timestamp).toDate()
-          : null, // Handle nullable field
+          : null,
+      coordinates: data['coordinates'] != null ? data['coordinates'] as GeoPoint : null,
+      favoriteCount: data['favoriteCount'] ?? 0,
+      favoritedBy: List<String>.from(data['favoritedBy'] ?? []),
+      manufacture: data['manufacture'] ?? '',
+      model: data['model'] ?? '',
+      color: data['color'] ?? '',
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
-      'licensePlate': licensePlate, // New field
+      'licensePlate': licensePlate,
       'exteriorPhotoUrl': exteriorPhotoUrl,
       'interiorPhotoUrl': interiorPhotoUrl,
       'ownershipCertificateUrl': ownershipCertificateUrl,
@@ -85,13 +103,15 @@ class Vehicle {
       'status': status,
       'roadworthinessExpiry': roadworthinessExpiry != null
           ? Timestamp.fromDate(roadworthinessExpiry!)
-          : null, // Store nullable field
-      'licenseExpiry': licenseExpiry != null
-          ? Timestamp.fromDate(licenseExpiry!)
-          : null, // Store nullable field
-      'hackneyExpiry': hackneyExpiry != null
-          ? Timestamp.fromDate(hackneyExpiry!)
-          : null, // Store nullable field
+          : null,
+      'licenseExpiry': licenseExpiry != null ? Timestamp.fromDate(licenseExpiry!) : null,
+      'hackneyExpiry': hackneyExpiry != null ? Timestamp.fromDate(hackneyExpiry!) : null,
+      'coordinates': coordinates,
+      'favoriteCount': favoriteCount,
+      'favoritedBy': favoritedBy,
+      'manufacture': manufacture,
+      'model': model,
+      'color': color,
     };
   }
 }

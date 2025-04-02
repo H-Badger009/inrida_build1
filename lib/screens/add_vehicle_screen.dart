@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geocoding/geocoding.dart'; // Added for geocoding
+import 'package:cloud_firestore/cloud_firestore.dart'; // For GeoPoint
 import 'package:inrida/providers/vehicle_provider.dart';
 import 'package:inrida/models/vehicle.dart';
 import 'package:inrida/screens/document_details_screen.dart';
@@ -22,6 +24,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String _model = '';
   String _licensePlate = '';
   String _color = '';
+  String _address = ''; // New field for full address
   XFile? _exteriorPhoto;
   XFile? _interiorPhoto;
   XFile? _ownershipCertificate;
@@ -116,13 +119,33 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   Future<void> _addVehicle() async {
     if (_formKey.currentState!.validate() && _validateDocuments()) {
+      // Geocode the address to get coordinates
+      GeoPoint? coordinates;
+      try {
+        List<Location> locations = await locationFromAddress(_address);
+        if (locations.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Unable to find location for the provided address')),
+          );
+          return;
+        }
+        coordinates = GeoPoint(locations.first.latitude, locations.first.longitude);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error geocoding address: $e')),
+        );
+        return;
+      }
+
       // Upload images and get URLs
       final exteriorPhotoUrl =
           _exteriorPhoto != null ? await _uploadImage(_exteriorPhoto!, 'exterior') : '';
       final interiorPhotoUrl =
           _interiorPhoto != null ? await _uploadImage(_interiorPhoto!, 'interior') : '';
-      final ownershipCertificateUrl =
-          _ownershipCertificate != null ? await _uploadImage(_ownershipCertificate!, 'ownership') : '';
+      final ownershipCertificateUrl = _ownershipCertificate != null
+          ? await _uploadImage(_ownershipCertificate!, 'ownership')
+          : '';
       final roadworthinessCertificateUrl = _roadworthinessCertificate != null
           ? await _uploadImage(_roadworthinessCertificate!, 'roadworthiness')
           : '';
@@ -134,7 +157,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       final vehicle = Vehicle(
         id: '', // Will be set by Firestore
         name: '$_manufacturer $_model',
-        licensePlate: _licensePlate, // Added field
+        manufacture: _manufacturer,
+        model: _model,
+        color: _color,
+        licensePlate: _licensePlate,
         exteriorPhotoUrl: exteriorPhotoUrl ?? '',
         interiorPhotoUrl: interiorPhotoUrl ?? '',
         ownershipCertificateUrl: ownershipCertificateUrl ?? '',
@@ -142,13 +168,14 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         licenseCertificateUrl: licenseCertificateUrl ?? '',
         hackneyPermitUrl: hackneyPermitUrl ?? '',
         year: int.parse(_year),
-        mileage: 0, // Default or add input field
-        location: 'Kigali, Rwanda', // Default or add input field
+        mileage: 0,
+        location: _address, // Use user-input address
         listedDate: DateTime.now(),
         status: 'Pending',
-        roadworthinessExpiry: _roadworthinessExpiry, // Added field
-        licenseExpiry: _licenseExpiry, // Added field
-        hackneyExpiry: _hackneyExpiry, // Added field
+        roadworthinessExpiry: _roadworthinessExpiry,
+        licenseExpiry: _licenseExpiry,
+        hackneyExpiry: _hackneyExpiry,
+        coordinates: coordinates, // Store geocoded coordinates
       );
       await Provider.of<VehicleProvider>(context, listen: false).addVehicle(vehicle);
       Navigator.pop(context);
@@ -273,12 +300,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 (value) => setState(() => _licensePlate = value!),
               ),
               const SizedBox(height: 16),
-              _buildDropdownField('Vehicle color *', _color, [
-                'Black',
-                'White',
-                'Blue',
-                'Red',
-              ], (value) => setState(() => _color = value!)),
+              _buildDropdownField(
+                'Vehicle color *',
+                _color,
+                ['Black', 'White', 'Blue', 'Red'],
+                (value) => setState(() => _color = value!),
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                'Vehicle location (full address) *',
+                _address,
+                (value) => setState(() => _address = value!),
+              ), // New address field
               const SizedBox(height: 16),
               _buildUploadField(
                 'Exterior photo of your car *',
@@ -302,7 +335,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
               const SizedBox(height: 16),
               _buildUploadField(
-                'Certificate of roadworthiness *', // Now required
+                'Certificate of roadworthiness *',
                 _roadworthinessCertificate,
                 () => _pickImage('roadworthiness'),
                 'Picture of roadworthiness certificate',
@@ -310,7 +343,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
               const SizedBox(height: 16),
               _buildUploadField(
-                'Vehicle license certificate *', // Now required
+                'Vehicle license certificate *',
                 _licenseCertificate,
                 () => _pickImage('license'),
                 'Upload the vehicle license document of the car',
@@ -318,7 +351,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
               const SizedBox(height: 16),
               _buildUploadField(
-                'Hackney Permit *', // Now required
+                'Hackney Permit *',
                 _hackneyPermit,
                 () => _pickImage('hackney'),
                 'Picture of Hackney Permit.',
@@ -508,7 +541,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           ),
           onChanged: (value) => setState(() {
             _manufacturer = value!;
-            _model = ''; // Reset model when manufacturer changes
+            _model = '';
           }),
           items: _manufacturersAndModels.keys.map((String value) {
             return DropdownMenuItem<String>(
@@ -591,13 +624,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
             builder: (context, constraints) {
               return ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: constraints.maxWidth * 0.9, // Adjust width dynamically
+                  maxWidth: constraints.maxWidth * 0.9,
                 ),
                 child: Text(
                   helperText,
                   style: const TextStyle(color: Colors.grey),
-                  overflow: TextOverflow.ellipsis, // Prevent overflow
-                  maxLines: 2, // Limit to 2 lines
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               );
             },
@@ -707,15 +740,15 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     onPressed: () => setState(() {
                       if (label.toLowerCase().contains('roadworthiness')) {
                         _roadworthinessCertificate = null;
-                        _roadworthinessExpiry = null; // Reset expiry date
+                        _roadworthinessExpiry = null;
                       }
                       if (label.toLowerCase().contains('license')) {
                         _licenseCertificate = null;
-                        _licenseExpiry = null; // Reset expiry date
+                        _licenseExpiry = null;
                       }
                       if (label.toLowerCase().contains('hackney')) {
                         _hackneyPermit = null;
-                        _hackneyExpiry = null; // Reset expiry date
+                        _hackneyExpiry = null;
                       }
                       if (label.toLowerCase().contains('exterior')) _exteriorPhoto = null;
                       if (label.toLowerCase().contains('interior')) _interiorPhoto = null;

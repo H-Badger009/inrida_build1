@@ -19,4 +19,32 @@ class VehicleProvider with ChangeNotifier {
       }
     }
   }
+
+  Future<void> toggleFavorite(String vehicleId, String userId) async {
+    try {
+      DocumentReference vehicleRef = FirebaseFirestore.instance
+          .collection('vehicles') // Adjust collection path if needed
+          .doc(vehicleId);
+
+      DocumentSnapshot vehicleDoc = await vehicleRef.get();
+      if (vehicleDoc.exists) {
+        Vehicle vehicle = Vehicle.fromFirestore(vehicleDoc);
+        List<String> updatedFavoritedBy = List.from(vehicle.favoritedBy);
+        bool isFavorited = updatedFavoritedBy.contains(userId);
+
+        if (isFavorited) {
+          updatedFavoritedBy.remove(userId); // Unfavorite
+        } else {
+          updatedFavoritedBy.add(userId); // Favorite
+        }
+
+        await vehicleRef.update({
+          'favoritedBy': updatedFavoritedBy,
+          'favoriteCount': updatedFavoritedBy.length,
+        });
+      }
+    } catch (e) {
+      print('Error toggling favorite: $e');
+    }
+  }
 }
