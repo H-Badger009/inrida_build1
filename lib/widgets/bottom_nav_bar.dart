@@ -12,6 +12,7 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(selectedIndex);
     return BottomNavigationBar(
       currentIndex: selectedIndex,
       onTap: onItemTapped,
@@ -26,7 +27,7 @@ class BottomNavBar extends StatelessWidget {
             'assets/home_icon.png',
             width: 24,
             height: 24,
-            color: selectedIndex == 0 ? Colors.black : Colors.grey, // Optional tint
+            color: Colors.black, // Optional tint
           ),
           label: 'Home',
         ),

@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:inrida/providers/user_provider.dart';
 
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
@@ -17,47 +19,84 @@ class _LogInScreenState extends State<LogInScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<String?> _getUserRole(String uid) async {
-    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    return doc.data()?['role'] as String?;
-  }
+  Future<void> _logIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
+      if (userCredential.user != null) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        await userProvider.fetchUserData(userCredential.user!.uid);
 
-Future<void> _logIn() async {
-  setState(() => _isLoading = true);
-  try {
-    // Attempt to sign in with email and password
-    final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-    );
-
-    // Check if the user is authenticated
-    if (userCredential.user != null) {
-      // Fetch the user's role from Firestore
-      final role = await _getUserRole(userCredential.user!.uid);
-
-      // Navigate based on the user's role
-      if (role == 'car_owner') {
-        Navigator.pushReplacementNamed(context, '/car_owner_home');
-      } else {
-        // Show an error if the role isn’t "Car Owner"
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Role not authorized for this dashboard')),
-        );
+        final role = userProvider.userProfile?.role;
+        if (role == 'Car Owner') {
+          Navigator.pushReplacementNamed(context, '/car_owner_home');
+        } else if (role == 'Driver') {
+          Navigator.pushReplacementNamed(context, '/driver_home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Role not authorized for this dashboard'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error logging in: $e')));
       }
     }
-  } catch (e) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error logging in: $e')),
-      );
+      setState(() => _isLoading = false);
     }
   }
-  if (mounted) {
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+      if (userCredential.user != null) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        await userProvider.fetchUserData(userCredential.user!.uid);
+        final role = userProvider.userProfile?.role;
+        if (role == 'Car Owner') {
+          Navigator.pushReplacementNamed(context, '/car_owner_home');
+        } else if (role == 'Driver') {
+          Navigator.pushReplacementNamed(context, '/driver_home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Role not authorized for this dashboard'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error signing in with Google: $e')),
+      );
+    }
     setState(() => _isLoading = false);
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +108,12 @@ Future<void> _logIn() async {
             top: 45,
             left: 5,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              icon: const Icon(
+                Icons.arrow_back_ios,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
           Positioned(
@@ -115,9 +156,11 @@ Future<void> _logIn() async {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(context, '/create_account'); // Adjust route
-                            },
+                            onTap:
+                                () => Navigator.pushNamed(
+                                  context,
+                                  '/create_account',
+                                ),
                             child: const Text(
                               'Create Account',
                               style: TextStyle(
@@ -190,13 +233,14 @@ Future<void> _logIn() async {
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                              _passwordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _passwordVisible = !_passwordVisible;
-                              });
-                            },
+                            onPressed:
+                                () => setState(
+                                  () => _passwordVisible = !_passwordVisible,
+                                ),
                           ),
                         ),
                         style: const TextStyle(
@@ -209,9 +253,11 @@ Future<void> _logIn() async {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/forgot_password');
-                          },
+                          onPressed:
+                              () => Navigator.pushNamed(
+                                context,
+                                '/forgot_password',
+                              ),
                           child: const Text(
                             'Forgot Password?',
                             style: TextStyle(
@@ -232,17 +278,20 @@ Future<void> _logIn() async {
                           ),
                           minimumSize: const Size(double.infinity, 60),
                         ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                                'Log In',
-                                style: TextStyle(
-                                  color: Color(0xFFFFFFFF),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'DM Sans',
+                        child:
+                            _isLoading
+                                ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                                : const Text(
+                                  'Log In',
+                                  style: TextStyle(
+                                    color: Color(0xFFFFFFFF),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'DM Sans',
+                                  ),
                                 ),
-                              ),
                       ),
                       const SizedBox(height: 20),
                       Row(
@@ -264,11 +313,9 @@ Future<void> _logIn() async {
                       ),
                       const SizedBox(height: 20),
                       OutlinedButton.icon(
-                        onPressed: () {
-                          // Handle Google sign-in (implement if needed)
-                        },
+                        onPressed: _signInWithGoogle,
                         icon: Image.asset(
-                          'assets/google_logo.png', // Ensure asset is added
+                          'assets/google_logo.png',
                           width: 24,
                           height: 24,
                         ),

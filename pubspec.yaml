@@ -44,6 +44,11 @@ dependencies:
   firebase_storage: ^12.4.4
   firebase_app_check: ^0.3.2+4
   google_maps_flutter: ^2.10.1
+  intl: ^0.20.2
+  url_launcher: ^6.3.1
+  google_sign_in: ^6.3.0
+  geocoding: ^3.0.0
+  geolocator: ^13.0.3
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +80,27 @@ flutter:
     - assets/tracking_icon.png
     - assets/notifications_icon.png
     - assets/account_icon.png
+    - assets/upload_file.png
+    - assets/empty_list.png
+    - assets/3_dots.png
+    - assets/add_newcar.png
+    - assets/add_car_badge.png
+    - assets/year.png
+    - assets/carbon_meter.png
+    - assets/location-icon.png
+    - assets/car.png
+    - assets/marker_icon.png
+    - assets/logo_anim.png
+    - assets/mingcute_announcement-line (2).png
+    - assets/mingcute_announcement-line.png
+    - assets/mingcute_announcement-line (1).png
+    - assets/material-symbols-light_payments-outline.png
+    - assets/ion_car-sport-outline.png
+    - assets/ph_steering-wheel.png
+    - assets/saved.png
+    - assets/messages.png
+    - assets/rides.png
+    - assets/openmoji_autonomous-car.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
