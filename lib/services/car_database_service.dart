@@ -2,7 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inrida/models/vehicle.dart';
 
 class CarDatabaseService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  set firestore(FirebaseFirestore firestore) {
+    _firestore = firestore;
+  }
 
   Stream<List<Vehicle>> streamAvailableVehicles(String location) {
     return _firestore
