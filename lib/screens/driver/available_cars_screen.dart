@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:inrida/providers/vehicle_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
+import 'package:inrida/screens/search_by_radius_screen.dart';
 
 class AvailableCarsScreen extends StatefulWidget {
   final String location;
@@ -36,6 +37,7 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
   String? _selectedModel;
   String? _selectedYear;
   String? _selectedColor;
+  double? _radiusFilter; // Add this for radius filtering
 
   // Sample manufacturers and models (should ideally be fetched dynamically)
   final Map<String, List<String>> _manufacturersAndModels = {
@@ -155,24 +157,30 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
     _carSubscription = query
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .where(
-                (doc) =>
-                    widget.location.isEmpty ||
-                    (doc['location'] ?? '').toString().toLowerCase().contains(
-                          widget.location.toLowerCase(),
-                        ),
-              )
-              .map((doc) => Vehicle.fromFirestore(doc))
-              .toList();
+          return snapshot.docs.map((doc) => Vehicle.fromFirestore(doc)).toList();
         })
         .listen(
           (cars) {
-            print('Stream update: ${cars.length} cars available');
-            print('Car IDs: ${cars.map((c) => c.id).toList()}');
+            List<Vehicle> filteredCars = cars.where((car) {
+              // Location filter
+              bool locationMatch = widget.location.isEmpty ||
+                  car.location.toLowerCase().contains(widget.location.toLowerCase());
+              // Radius filter
+              bool radiusMatch = _radiusFilter == null ||
+                  (car.coordinates != null &&
+                      _calculateDistanceInKm(
+                            _initialPosition!,
+                            LatLng(car.coordinates!.latitude, car.coordinates!.longitude),
+                          ) <=
+                          _radiusFilter!);
+              return locationMatch && radiusMatch;
+            }).toList();
+
+            print('Stream update: ${filteredCars.length} cars available after filters');
+            print('Car IDs: ${filteredCars.map((c) => c.id).toList()}');
             triedSearching = false;
             setState(() {
-              _availableCars = cars;
+              _availableCars = filteredCars;
               _updateMarkers();
               if (_availableCars.isEmpty) {
                 _resetFilters();
@@ -197,12 +205,26 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
         );
   }
 
+  double _calculateDistanceInKm(LatLng pos1, LatLng pos2) {
+    const double earthRadius = 6371; // Earth's radius in kilometers
+    double lat1 = pos1.latitude * math.pi / 180;
+    double lat2 = pos2.latitude * math.pi / 180;
+    double deltaLat = (pos2.latitude - pos1.latitude) * math.pi / 180;
+    double deltaLon = (pos2.longitude - pos1.longitude) * math.pi / 180;
+
+    double a = math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+        math.cos(lat1) * math.cos(lat2) * math.sin(deltaLon / 2) * math.sin(deltaLon / 2);
+    double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadius * c;
+  }
+
   void _resetFilters() {
     setState(() {
       _selectedManufacturer = null;
       _selectedModel = null;
       _selectedYear = null;
       _selectedColor = null;
+      _radiusFilter = null; // Reset radius filter as well
     });
   }
 
@@ -425,9 +447,23 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
     }
   }
 
-  void _showSearchByRadius() {
-    // TODO: Implement search by radius functionality
-    print('Show search by radius');
+  void _showSearchByRadius() async {
+    if (_initialPosition == null) return; // Ensure position is available
+    final selectedRadius = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchByRadiusScreen(
+          location: widget.location,
+          initialPosition: _initialPosition!,
+        ),
+      ),
+    );
+    if (selectedRadius != null) {
+      setState(() {
+        _radiusFilter = selectedRadius;
+      });
+      _fetchAvailableCars();
+    }
   }
 
   @override
