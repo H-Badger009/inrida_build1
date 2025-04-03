@@ -1,5 +1,7 @@
-# inrida
+/# inrida
+## Contributors
 
+- [Daniel Kudum](https://github.com/MarialRK)
 A new Flutter project.
 
 ## Getting Started
